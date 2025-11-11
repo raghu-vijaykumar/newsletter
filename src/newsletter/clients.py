@@ -2,8 +2,14 @@ import os
 import time
 from langchain_google_genai import ChatGoogleGenerativeAI
 from gtts import gTTS
-from tenacity import retry, stop_after_attempt, wait_exponential
-from .config import get_google_api_key, AUDIO_LANG, RATE_LIMIT_RPM, TTS_RATE_LIMIT_RPM
+from tenacity import retry, stop_after_attempt, wait_fixed
+from .config import (
+    get_google_api_key,
+    AUDIO_LANG,
+    RATE_LIMIT_RPM,
+    TTS_RATE_LIMIT_RPM,
+    last_llm_call,
+)
 
 # Rate limiting
 wait_time = 60 / RATE_LIMIT_RPM
@@ -11,7 +17,6 @@ tts_wait_time = 60 / TTS_RATE_LIMIT_RPM
 
 # Singleton LLM
 llm = None
-last_llm_call = 0
 
 # Singleton GTTS rate limiting
 last_tts_call = 0
@@ -22,14 +27,14 @@ def get_llm():
     global llm
     if llm is None:
         llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash", google_api_key=get_google_api_key()
+            model="gemini-2.0-flash", google_api_key=get_google_api_key(), max_retries=0
         )
     return llm
 
 
 @retry(
     stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=wait_time, max=60),
+    wait=wait_fixed(wait_time),
 )
 def summarize_article(article):
     """Summarize a single article."""
@@ -67,7 +72,7 @@ def summarize_article(article):
 
 @retry(
     stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=tts_wait_time, max=60),
+    wait=wait_fixed(tts_wait_time),
 )
 def generate_audio_chunk(text_chunk, temp_file):
     """Generate audio for a text chunk."""

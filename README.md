@@ -31,15 +31,6 @@ This will fetch articles from the last 7 days, summarize them, generate digests,
 
 Data is stored in the `data/` directory, organized by date.
 
-## Sources
-
-Currently configured for:
-- TechCrunch
-- Ars Technica
-- The Verge
-- MIT Technology Review
-- Wired
-
 ## Requirements
 
 - Python 3.12+

@@ -1,9 +1,10 @@
 import json
 import os
+import time
 from langchain_core.prompts import PromptTemplate
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import retry, stop_after_attempt, wait_fixed
 from .clients import get_llm
-from .config import DATA_DIR, RATE_LIMIT_RPM
+from .config import DATA_DIR, RATE_LIMIT_RPM, last_llm_call
 
 # Rate limiting
 wait_time = 60 / RATE_LIMIT_RPM
@@ -11,10 +12,16 @@ wait_time = 60 / RATE_LIMIT_RPM
 
 @retry(
     stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=wait_time, max=60),
+    wait=wait_fixed(wait_time),
 )
 def generate_digest(summaries):
     """Generate a daily digest from article summaries."""
+    global last_llm_call
+    current_time = time.time()
+    time_since_last = current_time - last_llm_call
+    if time_since_last < wait_time:
+        time.sleep(wait_time - time_since_last)
+
     llm = get_llm()
 
     if not summaries:
@@ -27,6 +34,7 @@ def generate_digest(summaries):
     )
     chain = prompt | llm
     response = chain.invoke({"summaries": summaries_text})
+    last_llm_call = time.time()
     return response.content.strip()
 
 

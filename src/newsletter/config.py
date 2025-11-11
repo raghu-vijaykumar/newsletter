@@ -65,6 +65,9 @@ RATE_LIMIT_RPM = 1  # Adjust as needed
 # Rate limiting: requests per minute for gTTS
 TTS_RATE_LIMIT_RPM = 1
 
+# Global for LLM rate limiting
+last_llm_call = 0
+
 # Audio settings
 AUDIO_LANG = "en"
 
@@ -78,3 +81,8 @@ def get_date_str(date):
 
 def get_days_ago(days):
     return datetime.now() - timedelta(days=days)
+
+
+def get_start_of_day(days_ago=0):
+    date = datetime.now() - timedelta(days=days_ago)
+    return date.replace(hour=0, minute=0, second=0, microsecond=0)

@@ -2,12 +2,13 @@ import feedparser
 import json
 import os
 from datetime import datetime
-from .config import SOURCES, DATA_DIR, get_date_str, get_days_ago
+from .config import SOURCES, DATA_DIR, get_date_str, get_days_ago, get_start_of_day
 
 
 def fetch_articles(days=7):
     """Fetch articles from RSS feeds for the last 'days' days."""
-    since_date = get_days_ago(days + 1)
+    since_date = get_start_of_day(days)
+    to_date = get_start_of_day(0)
     all_articles = []
 
     for source_url in SOURCES:
@@ -22,7 +23,7 @@ def fetch_articles(days=7):
                 else:
                     continue  # Skip if no date
 
-                if published >= since_date:
+                if since_date <= published < to_date:
                     article = {
                         "title": entry.title,
                         "link": entry.link,
