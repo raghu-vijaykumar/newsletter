@@ -8,6 +8,7 @@ A Python CLI tool to fetch daily newsletters from tech blogs, summarize them usi
 - Summarizes articles using LangChain and Google Gemini
 - Generates daily digests
 - Creates audio versions using Google Text-to-Speech
+- Sends digests via Telegram bot (text + audio attachment)
 - Rate limiting for LLM calls
 - Skips already processed data on reruns
 - Configurable number of days to fetch
@@ -17,7 +18,23 @@ A Python CLI tool to fetch daily newsletters from tech blogs, summarize them usi
 1. Install uv if not already installed.
 2. Clone or download the project.
 3. Install dependencies: `uv sync`
-4. Set up environment variable: Copy `.env.example` to `.env` and add your Google API key.
+4. Set up environment variables: Copy `.env.example` to `.env` and add your API keys.
+
+### Telegram Bot Setup (Optional)
+
+To receive digests via Telegram:
+
+1. Message [@BotFather](https://t.me/botfather) on Telegram
+2. Send `/newbot` and follow instructions to create your bot
+3. Copy the bot token provided by BotFather
+4. Message your bot to start a chat and get your chat ID
+5. Add to `.env`:
+   ```
+   TELEGRAM_BOT_TOKEN=your_bot_token_here
+   TELEGRAM_CHAT_ID=your_chat_id_here
+   ```
+
+The bot will send digest text as a message and audio as an attachment.
 
 ## Usage
 

@@ -1,8 +1,32 @@
 import feedparser
 import json
 import os
+import requests
+import ssl
+import certifi
 from datetime import datetime
 from .config import SOURCES, DATA_DIR, get_date_str, get_days_ago, get_start_of_day
+
+
+def fetch_feed(url):
+    """Fetch and parse RSS feed with proper error handling."""
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0 Safari/537.36"
+        )
+    }
+
+    try:
+        response = requests.get(
+            url, headers=headers, verify=certifi.where(), timeout=10
+        )
+        response.raise_for_status()
+        return feedparser.parse(response.content)
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching from {url}: {e}")
+        return None
 
 
 def fetch_articles(days=7):
@@ -12,32 +36,33 @@ def fetch_articles(days=7):
     all_articles = []
 
     for source_url in SOURCES:
-        try:
-            feed = feedparser.parse(source_url)
-            for entry in feed.entries:
-                published = None
-                if hasattr(entry, "published_parsed") and entry.published_parsed:
-                    published = datetime(*entry.published_parsed[:6])
-                elif hasattr(entry, "updated_parsed") and entry.updated_parsed:
-                    published = datetime(*entry.updated_parsed[:6])
-                else:
-                    continue  # Skip if no date
+        print(f"Fetching rss from {source_url}")
+        feed = fetch_feed(source_url)
+        if feed is None:
+            continue  # Skip this source if fetch failed
 
-                if since_date <= published < to_date:
-                    article = {
-                        "title": entry.title,
-                        "link": entry.link,
-                        "published": published.isoformat(),
-                        "content": (
-                            getattr(entry, "content", [{}])[0].get("value", "")
-                            if hasattr(entry, "content")
-                            else ""
-                        ),
-                        "source": source_url,
-                    }
-                    all_articles.append(article)
-        except Exception as e:
-            print(f"Error fetching from {source_url}: {e}")
+        for entry in feed.entries:
+            published = None
+            if hasattr(entry, "published_parsed") and entry.published_parsed:
+                published = datetime(*entry.published_parsed[:6])
+            elif hasattr(entry, "updated_parsed") and entry.updated_parsed:
+                published = datetime(*entry.updated_parsed[:6])
+            else:
+                continue  # Skip if no date
+
+            if since_date <= published < to_date:
+                article = {
+                    "title": entry.title,
+                    "link": entry.link,
+                    "published": published.isoformat(),
+                    "content": (
+                        getattr(entry, "content", [{}])[0].get("value", "")
+                        if hasattr(entry, "content")
+                        else ""
+                    ),
+                    "source": source_url,
+                }
+                all_articles.append(article)
 
     # Group by date
     articles_by_date = {}

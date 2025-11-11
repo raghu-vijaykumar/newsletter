@@ -27,10 +27,12 @@ def generate_digest(summaries):
     if not summaries:
         return "No articles to summarize for this day."
 
-    summaries_text = "\n\n".join([f"- {s['title']}: {s['summary']}" for s in summaries])
+    summaries_text = "\n\n".join(
+        [f"- [{s['title']}]({s['link']}): {s['summary']}" for s in summaries]
+    )
 
     prompt = PromptTemplate.from_template(
-        "Create a concise daily digest of the following tech news summaries. Organize by themes if possible, and highlight the most important stories:\n\n{summaries}\n\nDaily Digest:"
+        "Create a concise daily digest of the following tech news summaries. Organize by themes if possible, and highlight the most important stories. Preserve the markdown links to the original articles in your digest:\n\n{summaries}\n\nDaily Digest:"
     )
     chain = prompt | llm
     response = chain.invoke({"summaries": summaries_text})
@@ -46,8 +48,14 @@ def create_daily_digest(date_str):
 
     if os.path.exists(digest_file):
         print(f"Digest already exists for {date_str}, skipping.")
-        with open(digest_file, "r") as f:
-            return f.read()
+        # Read digest text with encoding fallback
+        try:
+            with open(digest_file, "r", encoding="utf-8") as f:
+                return f.read()
+        except UnicodeDecodeError:
+            # Fallback to Windows-1252 encoding for files with Windows-specific characters
+            with open(digest_file, "r", encoding="cp1252") as f:
+                return f.read()
 
     if not os.path.exists(summaries_file):
         print(f"No summaries found for {date_str}")

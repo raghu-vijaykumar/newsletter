@@ -1,10 +1,16 @@
 import click
+import sys
+import os
 from datetime import datetime, timedelta
-from src.newsletter.fetcher import fetch_articles
-from src.newsletter.summarizer import summarize_articles_for_date
-from src.newsletter.digest import create_daily_digest
-from src.newsletter.audio import generate_digest_audio
-from src.newsletter.config import get_date_str, get_days_ago
+
+# Add src to path for direct execution
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+
+from newsletter.fetcher import fetch_articles
+from newsletter.summarizer import summarize_articles_for_date
+from newsletter.audio import generate_summaries_audio
+from newsletter.telegram import send_articles_sync
+from newsletter.config import get_date_str, get_days_ago
 
 
 @click.command()
@@ -33,14 +39,14 @@ def main(days, provider):
             f"Summarized {len(summaries)} articles and generated markdown articles."
         )
 
-        # Generate digest
-        digest = create_daily_digest(date_str)
-        if digest:
-            click.echo("Generated digest.")
+        if summaries:
+            # Generate combined summaries audio
+            generate_summaries_audio(date_str)
+            click.echo("Generated summaries audio.")
 
-            # Generate audio
-            generate_digest_audio(date_str)
-            click.echo("Generated digest audio.")
+            # Send articles via Telegram
+            send_articles_sync(date_str)
+            click.echo("Sent articles via Telegram.")
 
     click.echo("Done!")
 

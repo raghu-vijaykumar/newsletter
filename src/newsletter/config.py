@@ -9,40 +9,27 @@ SOURCES = [
     "https://developers.googleblog.com/feeds/posts/default",
     "https://research.google/blog/rss/",
     "https://engineering.fb.com/feed/",
-    "https://netflixtechblog.com/feed",
     "https://medium.com/feed/airbnb-engineering",
-    "https://eng.uber.com/feed/",
     "https://engineering.linkedin.com/blog.rss.html",
-    "https://blog.twitter.com/engineering/feed",
     "https://engineering.atspotify.com/feed/",
     "https://dropbox.tech/feed",
     "https://slack.engineering/feed",
-    "https://shopify.engineering/rss.xml",
-    "https://reddit.engineering/feed.xml",
     "https://medium.com/feed/pinterest-engineering",
-    "https://instagram-engineering.com/feed",
     "https://devblogs.microsoft.com/feed/",
     "https://aws.amazon.com/blogs/aws/feed/",
-    "https://openai.com/feed.xml",
     "https://github.blog/category/engineering/feed/",
     "https://blog.cloudflare.com/rss/",
-    "https://databricks.com/blog/category/engineering/feed",
-    "https://www.atlassian.com/engineering/feed.xml",
-    "https://stripe.com/blog/engineering/feed",
+    "https://www.databricks.com/feed",
+    "https://www.atlassian.com/blog/artificial-intelligence/feed",
     "https://discord.com/blog/rss.xml",
-    "https://www.notion.so/blog/rss.xml",
     "https://www.canva.dev/blog/engineering/feed",
     "https://doordash.engineering/feed/",
-    "https://engineering.grab.com/feed/",
+    "https://engineering.grab.com/feed",
     "https://about.gitlab.com/atom.xml",
-    "https://product.hubspot.com/blog/rss.xml",
-    "https://www.digitalocean.com/blog/feed.xml",
-    "https://blog.heroku.com/engineering/feed.xml",
-    "https://www.intel.com/content/www/us/en/developer/articles/blog.rss.xml",
+    "https://www.heroku.com/blog/feed/",
     "https://developer.nvidia.com/blog/feed/",
     "https://medium.com/feed/adobetech",
     "https://engineering.salesforce.com/feed/",
-    "https://www.intel.ai/blog/feed/",
     "https://dropbox.tech/security/feed",
     "https://developer.squareup.com/blog/rss.xml",
 ]
@@ -60,6 +47,20 @@ def get_groq_api_key():
     key = os.getenv("GROQ_API_KEY")
     if not key:
         raise ValueError("GROQ_API_KEY environment variable not set")
+    return key
+
+
+def get_telegram_bot_token():
+    key = os.getenv("TELEGRAM_BOT_TOKEN")
+    if not key:
+        raise ValueError("TELEGRAM_BOT_TOKEN environment variable not set")
+    return key
+
+
+def get_telegram_chat_id():
+    key = os.getenv("TELEGRAM_CHAT_ID")
+    if not key:
+        raise ValueError("TELEGRAM_CHAT_ID environment variable not set")
     return key
 
 
@@ -83,6 +84,7 @@ last_llm_call = 0
 
 # Audio settings
 AUDIO_LANG = "en"
+AUDIO_SPEED = 1.25  # Speed multiplier (1.0 = normal speed, 1.25 = 25% faster)
 
 # Date format
 DATE_FORMAT = "%Y-%m-%d"

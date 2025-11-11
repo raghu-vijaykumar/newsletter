@@ -37,11 +37,13 @@ def generate_audio(text, filename):
 
     if len(chunks) == 1:
         # Single chunk
+        print(f"processing chunk 1/1 using gtts")
         generate_audio_chunk(chunks[0], filename)
     else:
         # Multiple chunks, concatenate
         combined = AudioSegment.empty()
-        for chunk in chunks:
+        for i, chunk in enumerate(chunks, 1):
+            print(f"Processing audio chunk {i}/{len(chunks)} using gtts")
             with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temp_file:
                 temp_filename = temp_file.name
             generate_audio_chunk(chunk, temp_filename)
@@ -53,23 +55,35 @@ def generate_audio(text, filename):
     print(f"Audio saved: {filename}")
 
 
-def generate_digest_audio(date_str):
-    """Generate audio for daily digest."""
-    date_dir = os.path.join(DATA_DIR, date_str)
-    digest_file = os.path.join(date_dir, "digest.txt")
-    audio_file = os.path.join(date_dir, "digest.mp3")
+def generate_summaries_audio(date_str):
+    """Generate combined audio for all article summaries."""
+    import json
 
-    if not os.path.exists(digest_file):
-        print(f"No digest found for {date_str}")
+    date_dir = os.path.join(DATA_DIR, date_str)
+    summaries_file = os.path.join(date_dir, "summaries.json")
+    audio_file = os.path.join(date_dir, "summaries.mp3")
+
+    if not os.path.exists(summaries_file):
+        print(f"No summaries found for {date_str}")
         return
 
-    with open(digest_file, "r") as f:
-        digest = f.read()
+    with open(summaries_file, "r") as f:
+        summaries = json.load(f)
+
+    if not summaries:
+        print(f"No summaries to generate audio for {date_str}")
+        return
+
+    # Combine all summaries into one text
+    combined_text = f"Tech News Summary for {date_str}\n\n"
+    for summary in summaries:
+        combined_text += f"Article: {summary['title']}\n"
+        combined_text += f"Summary: {summary['summary']}\n\n"
 
     # Clean the text for plain audio
-    clean_digest = clean_text_for_audio(digest)
+    clean_text = clean_text_for_audio(combined_text)
 
-    generate_audio(clean_digest, audio_file)
+    generate_audio(clean_text, audio_file)
 
 
 def generate_article_audio(date_str, title, link):
