@@ -9,7 +9,13 @@ from src.newsletter.config import get_date_str, get_days_ago
 
 @click.command()
 @click.option("--days", default=7, help="Number of days to fetch (default: 7)")
-def main(days):
+@click.option(
+    "--provider",
+    default="gemini",
+    type=click.Choice(["gemini", "groq"]),
+    help="LLM provider to use (default: gemini)",
+)
+def main(days, provider):
     """Fetch, summarize, and generate audio for daily tech newsletters."""
     click.echo(f"Processing last {days} days...")
 
@@ -22,7 +28,7 @@ def main(days):
         click.echo(f"Processing {date_str}...")
 
         # Summarize and generate markdown articles
-        summaries = summarize_articles_for_date(date_str)
+        summaries = summarize_articles_for_date(date_str, provider)
         click.echo(
             f"Summarized {len(summaries)} articles and generated markdown articles."
         )

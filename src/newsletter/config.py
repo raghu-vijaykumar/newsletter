@@ -56,6 +56,19 @@ def get_google_api_key():
     return key
 
 
+def get_groq_api_key():
+    key = os.getenv("GROQ_API_KEY")
+    if not key:
+        raise ValueError("GROQ_API_KEY environment variable not set")
+    return key
+
+
+# LLM Provider settings
+DEFAULT_LLM_PROVIDER = "gemini"  # Options: "gemini", "groq"
+GROQ_MODEL = "openai/gpt-oss-120b"
+GEMINI_MODEL = "gemini-2.0-flash"
+
+
 # Data directory
 DATA_DIR = "data"
 

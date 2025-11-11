@@ -121,7 +121,7 @@ def generate_markdown_articles_for_date(date_str):
             print(f"Error generating markdown for {article['title']}: {e}")
 
 
-def summarize_articles_for_date(date_str):
+def summarize_articles_for_date(date_str, provider="gemini"):
     """Summarize all articles for a given date."""
     date_dir = os.path.join(DATA_DIR, date_str)
     articles_file = os.path.join(date_dir, "articles.json")
@@ -181,7 +181,9 @@ def summarize_articles_for_date(date_str):
                     pass  # Skip if can't extract
             continue
         try:
-            summary = summarize_article(article)
+            print(f"Starting to summarize: {article['title']}")
+            summary = summarize_article(article, provider)
+            print(f"Finished summarizing: {article['title']}")
             article_summary = {
                 "title": article["title"],
                 "link": article["link"],

@@ -1,42 +1,50 @@
 import os
 import time
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from gtts import gTTS
 from tenacity import retry, stop_after_attempt, wait_fixed
 from .config import (
     get_google_api_key,
+    get_groq_api_key,
     AUDIO_LANG,
     RATE_LIMIT_RPM,
     TTS_RATE_LIMIT_RPM,
     last_llm_call,
+    GROQ_MODEL,
+    GEMINI_MODEL,
 )
 
 # Rate limiting
 wait_time = 60 / RATE_LIMIT_RPM
 tts_wait_time = 60 / TTS_RATE_LIMIT_RPM
 
-# Singleton LLM
-llm = None
-
 # Singleton GTTS rate limiting
 last_tts_call = 0
 
 
-def get_llm():
-    """Get singleton LLM instance."""
-    global llm
-    if llm is None:
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash", google_api_key=get_google_api_key(), max_retries=0
+def get_llm(provider="gemini"):
+    """Get LLM instance for the specified provider."""
+    if provider == "groq":
+        return ChatGroq(
+            model=GROQ_MODEL, api_key=get_groq_api_key(), max_retries=0, timeout=30
         )
-    return llm
+    elif provider == "gemini":
+        return ChatGoogleGenerativeAI(
+            model=GEMINI_MODEL,
+            google_api_key=get_google_api_key(),
+            max_retries=0,
+            timeout=30,
+        )
+    else:
+        raise ValueError(f"Unsupported LLM provider: {provider}")
 
 
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_fixed(wait_time),
 )
-def summarize_article(article):
+def summarize_article(article, provider="gemini"):
     """Summarize a single article."""
     global last_llm_call
     current_time = time.time()
@@ -44,7 +52,7 @@ def summarize_article(article):
     if time_since_last < wait_time:
         time.sleep(wait_time - time_since_last)
 
-    llm = get_llm()
+    llm = get_llm(provider)
     from langchain_core.prompts import PromptTemplate
 
     # Get content
